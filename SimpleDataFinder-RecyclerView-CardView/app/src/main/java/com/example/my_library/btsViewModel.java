@@ -27,18 +27,8 @@ public class btsViewModel extends ViewModel {
 
     /*   Definición de la función createBTSList*/
     public void createBTSList(final Context context){
-        /*acá añadimos las cuestiones*/
 
-//        mbtsList.add(new btsItem("basd","asd","asda"));
-//        mbtsList.add(new btsItem("vaszd","asd","asdeea"));
-//        mbtsList.add(new btsItem("asd","as2d","asda"));
-//        mbtsList.add(new btsItem("1awsd","asd","aseda"));
-//        mbtsList.add(new btsItem("aesd","asd","asda"));
-//        mbtsList.add(new btsItem("assd","a1sd","asda"));
-//        mbtsList.add(new btsItem("asrd","asd","asda"));
-//        mbtsList.add(new btsItem("asd","as1ed","asda"));
-//        mbtsList.add(new btsItem("qsd","asd","asdea"));
-
+            /*Poblamos la data con un archivo String*/
 
             final Resources res = context.getResources();
 

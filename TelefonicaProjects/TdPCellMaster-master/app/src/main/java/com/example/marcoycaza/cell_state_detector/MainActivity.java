@@ -148,63 +148,6 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
 
 
-
-        //__________________Acerca de  el grafico en tiempo real_________
-                    relativeLayout = findViewById(R.id.relativeLayout);
-                    // create line chart
-                    mChart =  new LineChart(this);
-                    //add to  layout
-                    relativeLayout.addView(mChart);
-                    //customize line chart
-                    mChart.setNoDataTextDescription("Real time Chart");
-                    mChart.setNoDataText("No data for the moment");
-
-                    //enable value highlighting
-                    mChart.setHighlightEnabled(true);
-                    //enable touch
-                    mChart.setTouchEnabled(true);
-                    //we want also scaling and dragging
-                    mChart.setDragEnabled(true);
-                    mChart.setScaleEnabled(true);
-                    mChart.setDrawGridBackground(false);
-
-                    //enable pinch zoom to avoid scaling x and y axis separately
-
-                    mChart.setPinchZoom(true);
-
-                    //alternative backgroundColor
-                    mChart.setBackgroundColor(Color.BLACK);
-
-                    //now , we work on data
-                    LineData data = new LineData();
-                    data.setValueTextColor(Color.WHITE);
-
-                    //  add data to line chart
-                    mChart.setData(data);
-
-                    // get legend object
-                    Legend l = mChart.getLegend();
-
-                    //customize legend
-                    l.setForm(Legend.LegendForm.LINE);
-                    l.setTextColor(Color.WHITE);
-
-                    XAxis x1 = mChart.getXAxis();
-                    x1.setTextColor(Color.WHITE);
-                    x1.setDrawGridLines(false);
-                    x1.setAvoidFirstLastClipping(true);
-
-                    YAxis y1 = mChart.getAxisLeft();
-                    y1.setTextColor(Color.WHITE);
-                    y1.setAxisMaxValue(150f);
-                    y1.setDrawGridLines(false);
-
-                    YAxis y12 = mChart.getAxisRight();
-                    y12.setEnabled(false);
-                    //__________________Texto temporal_________ Borrar
-
-
-
     }
 
     //___________________________This to make data Persistent_______________________________________
@@ -273,9 +216,8 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
                                               "LAC: " + area_code ;
                                         detailsNetTx.setText(filltextG);
 
-                                        final Integer powerG = celda.getDbm();
 
-                                        addEntry(view, powerG * -1);
+
                                         break;
                                     case "WCDMA":
                                         netText.setText("WCDMA");
@@ -287,9 +229,9 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
                                         detailsNetTx.setText(filltextW);
 
-                                        final Integer powerW = celda.getDbm();
 
-                                        addEntry(view, powerW* -1);
+
+
                                         break;
                                     case "LTE":
                                         netText.setText("LTE");
@@ -302,9 +244,6 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
                                         detailsNetTx.setText(filltextL);
 
-                                        final Integer powerL = celda.getDbm();
-
-                                        addEntry(view, powerL * -1);
 
                                         break;
                                     case "UNKNOWN":
@@ -430,61 +369,6 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
             cellRepetitiveTask.start(true);
         }
-    }
-    /*Todo Related to Fix View Size Programatically*/
-
-    public int convertDpToPixelInt(float dp, Context context) {
-        return (int) (dp * (((float) context.getResources().getDisplayMetrics().densityDpi) / 160.0f));
-    }
-
-    /*Todo esto relacionado con la gráfica*/
-    private void addEntry(View view , float valuePower){
-        LineData data = mChart.getData();
-
-        if (data != null) {
-            LineDataSet set = data.getDataSetByIndex(0);
-
-            if (set == null) {
-                //creation if null
-                set = createSet();
-                data.addDataSet(set);
-            }
-            // add a new random value
-            data.addXValue("");
-
-            data.addEntry(new Entry(valuePower,set.getEntryCount()),0);
-
-            final int graphVal = convertDpToPixelInt(150-valuePower,getApplicationContext());
-
-
-            //notify chart data have changed
-            mChart.notifyDataSetChanged();
-            // limit number if visible entreies
-            mChart.setVisibleXRange(6);
-            //scroll to the last entry
-            mChart.moveViewToX(data.getXValCount()-7);
-        }
-    }
-    /*
-    Método para generar la gráfica lineal
-     */
-    private LineDataSet createSet() {
-        LineDataSet set = new LineDataSet(null,"Potencia recibida en dBm");
-        set.setDrawCubic(true);
-        set.setCubicIntensity(0.2f);
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        set.setColor(ColorTemplate.getHoloBlue());
-        set.setCircleColor(ColorTemplate.getHoloBlue());
-        set.setLineWidth(2f);
-        set.setCircleSize(4f);
-        set.setFillAlpha(65);
-        set.setFillColor(ColorTemplate.getHoloBlue());
-        set.setHighLightColor(Color.rgb(244,117,177));
-        set.setValueTextColor(Color.WHITE);
-        set.setValueTextSize(10f);
-
-        return set;
-
     }
 
     /*

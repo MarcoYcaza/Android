@@ -8,16 +8,6 @@
     tools:context=".MainActivity"
     tools:layout_editor_absoluteY="81dp">
 
-    <RelativeLayout
-        android:id="@+id/relativeLayout"
-        android:layout_width="377dp"
-        android:layout_height="269dp"
-        android:gravity="bottom"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:background="@color/colorDEF"></RelativeLayout>
 
     <TextView
         android:id="@+id/netTypeTx"

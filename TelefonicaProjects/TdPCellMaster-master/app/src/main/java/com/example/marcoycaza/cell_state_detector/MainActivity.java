@@ -26,14 +26,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.marcoycaza.cell_state_detector.Data.BtsDatabase;
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -59,19 +51,15 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
     private boolean workingFlag;
 
 
-    Resources res;
-
     //___________________________Variables_______________________________________
     private Menu menu;
     private boolean isPaused;
     private RepetitiveTask cellRepetitiveTask;
     private TextView detailsNetTx;
-    private RelativeLayout relativeLayout;
+
 
     private String btsNameFinded;
-    private LineChart mChart;
 
-    private View view;
     //___________________________Location Variabless_______________________________________
     private static int UPDATE_INTERVAL = 5000; // SEC
     private static int FASTEST_INTERVAL = 3000;  //SEC

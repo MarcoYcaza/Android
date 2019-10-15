@@ -12,11 +12,8 @@ import java.util.List;
 @Dao
 public interface DaoAccess {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertOnlySingleBts(Bts bts);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-
     void insertMultipleBts(List<Bts> btsList);
 
     @Query("SELECT * FROM Bts WHERE BtsId = :BtsId")

@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 
 @Entity
 public class Bts {
+
     @NonNull
     @PrimaryKey
     private String BtsId;
@@ -19,8 +20,16 @@ public class Bts {
     public Bts() {
     }
 
-    public String getBtsId() { return BtsId; }
-    public void setBtsId(String btsId) { this.BtsId = btsId; }
-    public String getBtsName() { return BtsName; }
-    public void setBtsName(String btsName) { this.BtsName = btsName; }
+    public String getBtsId() {
+        return BtsId;
+    }
+    public void setBtsId(String btsId) {
+        this.BtsId = btsId;
+    }
+    public String getBtsName() {
+        return BtsName;
+    }
+    public void setBtsName(String btsName) {
+        this.BtsName = btsName;
+    }
 }

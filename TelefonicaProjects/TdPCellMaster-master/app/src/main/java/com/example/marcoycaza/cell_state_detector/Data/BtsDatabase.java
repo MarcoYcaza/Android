@@ -15,54 +15,41 @@ import java.util.List;
 @Database(entities = {Bts.class}, version = 1, exportSchema = false)
 public abstract class BtsDatabase extends RoomDatabase {
     public abstract DaoAccess daoAccess() ;
-    Thread thread;
 
-
-
-        public void PopulationExecution(Thread thread, final Context context) {
+        public void PopulationExecution(final Context context) {
 
             final ArrayList<Bts> btsList = new ArrayList<>();
+            final Thread thread = new Thread(new Runnable() {
+            final Resources res = context.getResources();
 
+            int i=0;
+            String cId;
+            String Description;
+            String[] sites = res.getStringArray(R.array.ListaSites);
 
-             new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-                 final Resources res = context.getResources();
+                for (String site : sites) {
 
-                 int i;
-                 String cId;
-                 String Description;
+                    String[] data = site.split(";");
 
-                 String[] sites = res.getStringArray(R.array.ListaSites);
+                    cId = data[0];
 
-                @Override
-                public void run() {
+                    Description = data[1];
 
+                    btsList.add(i, new Bts(String.valueOf(cId), Description));
 
-                    i = 0;
-
-
-                    for (String site : sites){
-
-                        String[] data = site.split(";");
-
-                        cId = data[0];
-
-                        Description = data[1];
-
-                        btsList.add(i,new Bts(String.valueOf(cId),Description));
-
-                        i=i+1;
-                    }
-
-
-                    daoAccess().insertMultipleBts(btsList);
-
+                    i=i++;
                 }
-            }).start();
-        }
 
+                daoAccess().insertMultipleBts(btsList);
 
+            }
+        });
 
+        thread.start();
+    }
 
 }
 

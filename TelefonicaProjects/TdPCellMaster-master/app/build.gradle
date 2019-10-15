@@ -36,6 +36,10 @@ dependencies {
     implementation 'com.nabinbhandari.android:permissions:3.8'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.github.PhilJay:MPAndroidChart:v2.0.9'
+
+    def lifecycle_version = "2.1.0"
+
+    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
 }
 apply plugin: 'com.android.application'
 

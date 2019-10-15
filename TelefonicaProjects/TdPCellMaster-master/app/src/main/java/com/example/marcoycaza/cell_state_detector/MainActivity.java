@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -53,8 +52,6 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
 
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,9 +68,9 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
         btsDatabase = Room.databaseBuilder(getApplicationContext(),
                 BtsDatabase.class, DATABASE_NAME).fallbackToDestructiveMigration().build();
 
-        Thread thread = new Thread();
 
-        btsDatabase.PopulationExecution(thread,getApplicationContext());
+
+        btsDatabase.PopulationExecution(getApplicationContext());
 
         buildGoogleApiClient();
         createLocationRequest();
@@ -135,7 +132,7 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
     public void WorkingCellTasks() {
 
-        final CellParameteGetter cellMonitor = new CellParameteGetter(getApplication());
+        final CellParameterGetter cellMonitor = new CellParameterGetter(getApplication());
         final CellRegistered cell = cellMonitor.action_monitor();
         final TextView netText = findViewById(id.netTypeTx);
 
@@ -291,7 +288,7 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
     private void onClickSearch(View view) {
 
-        final CellParameteGetter cellMonitor = new CellParameteGetter(getApplication());
+        final CellParameterGetter cellMonitor = new CellParameterGetter(getApplication());
         final CellRegistered celdax = cellMonitor.action_monitor();
         final Integer cellid = celdax.getCid();
         final Handler handler = new Handler();

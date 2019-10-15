@@ -10,7 +10,6 @@ public class CellRegistered {
     private Integer psc;
 
     public CellRegistered() {
-
           dbm = 0;
           type = "null";
           cid = 0;

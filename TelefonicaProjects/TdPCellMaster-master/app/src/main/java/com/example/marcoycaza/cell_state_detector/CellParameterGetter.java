@@ -16,12 +16,12 @@ import android.widget.Toast;
 import javax.security.auth.login.LoginException;
 
 
-public class CellParameteGetter {
+public class CellParameterGetter {
 
     private TelephonyManager telephonyManager;
     private Application application;
 
-    public CellParameteGetter(Application application) {
+    public CellParameterGetter(Application application) {
         this.application = application;
         this.telephonyManager = (TelephonyManager) application.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
     }

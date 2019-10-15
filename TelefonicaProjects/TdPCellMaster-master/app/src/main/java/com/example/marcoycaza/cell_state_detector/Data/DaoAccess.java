@@ -21,13 +21,4 @@ public interface DaoAccess {
 
     @Query("SELECT * FROM Bts WHERE BtsId = :BtsId")
     Bts fetchOneBtsbyId(int BtsId);
-
-    @Query("DELETE FROM bts")
-    void deleteAll();
-
-    @Update
-    void updateBts(Bts bts);
-
-    @Delete
-    void deleteBts(Bts bts);
 }

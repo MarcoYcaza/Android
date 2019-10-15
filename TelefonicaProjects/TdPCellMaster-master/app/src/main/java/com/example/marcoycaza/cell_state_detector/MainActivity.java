@@ -1,43 +1,29 @@
 package com.example.marcoycaza.cell_state_detector;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.arch.persistence.room.Room;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-
-import android.widget.RelativeLayout;
+import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.marcoycaza.cell_state_detector.Data.BtsDatabase;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
-
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.nabinbhandari.android.permissions.PermissionHandler;
-import com.nabinbhandari.android.permissions.Permissions;
 
 
-import java.util.ArrayList;
+import static com.example.marcoycaza.cell_state_detector.R.*;
 
 public class MainActivity extends AppCompatActivity  implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,LocationListener {
@@ -45,100 +31,70 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
     private final static long REPETITIVE_TASK_DELAY_IN_MILLIS = 10;
     private static final String SAVED_INSTANCE_STATE_KEY_IS_RUNNING = "isRunning";
     private static final String SAVED_INSTANCE_STATE_KEY_LAST_TEXT = "lastDataText";
-
     private static final String DATABASE_NAME = "bts_db";
     private BtsDatabase btsDatabase;
-    private boolean workingFlag;
 
 
-    //___________________________Variables_______________________________________
-    private Menu menu;
+
+    //______________Variables_________________
+
     private boolean isPaused;
     private RepetitiveTask cellRepetitiveTask;
-    private TextView detailsNetTx;
+    private TextView network_details;
+    private String btsNameFetched;
 
 
-    private String btsNameFinded;
-
-    //___________________________Location Variabless_______________________________________
-    private static int UPDATE_INTERVAL = 5000; // SEC
-    private static int FASTEST_INTERVAL = 3000;  //SEC
-    private static int DISPLACEMENT = 10; // METERS
-
-
-    private static final int MY_PERMISSION_REQUEST_CODE= 7171;
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 7172;
-
-
-    private boolean mRequestingLocationUpdates = false;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
-    private TextView latitud;
-    private TextView longitud;
-    //___________________________Location Variables_______________________________________
+    private TextView mLatitude;
+    private TextView mLongitude;
+    private TextView mTextoResultado;
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSION_REQUEST_CODE:
-                if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    if(checkPlayServices()) buildGoogleApiClient();
-                }
-                break;
-        }
-    }
-    //___________________________On Create Method____________________________________________
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(layout.activity_main);
+
+        final Button mButtonSearch = findViewById(id.buttonSearch);
+        final Button mButtonStop = findViewById(id.buttonStop);
+
+        mTextoResultado = findViewById(id.textRes);
+
+
         isPaused = false;
 
-
-        //__________________Texto de Room y esa vaina_________ Borrar
         btsDatabase = Room.databaseBuilder(getApplicationContext(),
                 BtsDatabase.class, DATABASE_NAME).fallbackToDestructiveMigration().build();
 
         Thread thread = new Thread();
-        Handler handler = new Handler();
-
 
         btsDatabase.PopulationExecution(thread,getApplicationContext());
 
+        buildGoogleApiClient();
+        createLocationRequest();
 
-      ///////////////////
-
-        //__________________Texto temporal_________ Borrar
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Run-Time request permission
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            }, MY_PERMISSION_REQUEST_CODE);
-        } else {
-            if (checkPlayServices()) {
-
-                buildGoogleApiClient();
-                createLocationRequest();
-            }
-        }//__________________Texto temporal_________ Borrar
-
-
-        detailsNetTx = findViewById(R.id.detailsNetTx);
+        network_details = findViewById(id.detailsNetTx);
         cellRepetitiveTask = createCellRepetitiveTask();
 
-        latitud = findViewById(R.id.latitud);
-        longitud = findViewById(R.id.longitud);
+        mLatitude = findViewById(id.latitud);
+        mLongitude = findViewById(id.longitud);
 
 
+        /* Acá vamos a incluir los botones*/
+        mButtonStop.setOnClickListener(//// borrar
+                this::onClickStop);
+
+        mButtonSearch.setOnClickListener(// Lo que sucede cuando buscamos
+                this::onClickSearch);
 
     }
 
-    //___________________________This to make data Persistent_______________________________________
+    /*  Methods override form Activity , can be replaced with ViewModel*/
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
@@ -147,13 +103,13 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
             cellRepetitiveTask.start(true);
         } else {
             final String lastTimeText = savedInstanceState.getString(SAVED_INSTANCE_STATE_KEY_LAST_TEXT, "");
-            detailsNetTx.setText(lastTimeText);
+            network_details.setText(lastTimeText);
         }
     }
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putBoolean(SAVED_INSTANCE_STATE_KEY_IS_RUNNING, isPaused || cellRepetitiveTask.isRunning());
-        outState.putString(SAVED_INSTANCE_STATE_KEY_LAST_TEXT, detailsNetTx.getText().toString());
+        outState.putString(SAVED_INSTANCE_STATE_KEY_LAST_TEXT, network_details.getText().toString());
         super.onSaveInstanceState(outState);
     }
     @Override
@@ -171,197 +127,70 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
             cellRepetitiveTask.stop();
             isPaused = true;
         }
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this); //borrar
-        if(mGoogleApiClient != null)//borrar
-            mGoogleApiClient.disconnect();//borrar
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
+        if(mGoogleApiClient != null)
+            mGoogleApiClient.disconnect();
     }
 
-    //___________________________Network Cell Affairs and other Methods_____________________________
+
     public void WorkingCellTasks() {
-        String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
-        Permissions.check(getApplicationContext(), permissions, "This permissions are required",
-                null/*options*/, new PermissionHandler() {
-                    @SuppressLint("MissingPermission")
-                    @Override
-                    public void onGranted() {
 
-                            final CellParameteGetter cellMonitor = new CellParameteGetter(getApplication());
-                            final CellRegistered celda = cellMonitor.action_monitor();
-                            final TextView netText = findViewById(R.id.netTypeTx);
+        final CellParameteGetter cellMonitor = new CellParameteGetter(getApplication());
+        final CellRegistered cell = cellMonitor.action_monitor();
+        final TextView netText = findViewById(id.netTypeTx);
 
-                            final Integer cellid = celda.getCid();
-                            final Integer area_code = celda.getLac();
-                            final Integer pci = celda.getPci();
-                            final Integer psc = celda.getPsc();
+        final Integer cellId = cell.getCid();
+        final Integer area_code = cell.getLac();
+        final Integer pci = cell.getPci();
+        final Integer psc = cell.getPsc();
 
+        switch (cell.getType())
+        {
+            case "GSM":
+                netText.setText(getString(string.GSM));
+                final String fill_text_G = "Cell ID: " + cellId +
+                      System.getProperty ("line.separator")+
+                      "LAC: " + area_code ;
+                network_details.setText(fill_text_G);
 
+                break;
+            case "WCDMA":
+                netText.setText(getString(string.WCDMA));
+                final String fill_text_W = "Cell ID: " + cellId +
+                        System.getProperty ("line.separator")+
+                        "LAC: " + area_code+
+                        System.getProperty ("line.separator")+
+                        "PSC: " + psc ;
 
-                            switch (celda.getType()) {
-                                    case "GSM":
-                                        netText.setText("GSM");
-                                        final String filltextG = "Cell ID: " + cellid +
-                                              System.getProperty ("line.separator")+
-                                              "LAC: " + area_code ;
-                                        detailsNetTx.setText(filltextG);
+                network_details.setText(fill_text_W);
 
+                break;
+            case "LTE":
+                netText.setText(string.LTE);
 
+                final String fill_text_L = "enodeB ID: " + cellId +
+                        System.getProperty ("line.separator")+
+                        "TAC: " + area_code+
+                        System.getProperty ("line.separator")+
+                        "PCI: " + pci ;
 
-                                        break;
-                                    case "WCDMA":
-                                        netText.setText("WCDMA");
-                                        final String filltextW = "Cell ID: " + cellid +
-                                                System.getProperty ("line.separator")+
-                                                "LAC: " + area_code+
-                                                System.getProperty ("line.separator")+
-                                                "PSC: " + psc ;
+                network_details.setText(fill_text_L);
 
-                                        detailsNetTx.setText(filltextW);
-
-
-
-
-                                        break;
-                                    case "LTE":
-                                        netText.setText("LTE");
-
-                                        final String filltextL = "enodeB ID: " + cellid +
-                                                System.getProperty ("line.separator")+
-                                                "TAC: " + area_code+
-                                                System.getProperty ("line.separator")+
-                                                "PCI: " + pci ;
-
-                                        detailsNetTx.setText(filltextL);
-
-
-                                        break;
-                                    case "UNKNOWN":
-                                        detailsNetTx.setText("null");
-                                        break;
-                                    default:
-                                        break;
-                                }
-
-
-
-                        //___________________________________________Some beautiful info__________________________
-                    }
-                    @Override
-                    public void onDenied(Context context, ArrayList<String> deniedPermissions) {
-                        super.onDenied(context, deniedPermissions);
-                        WorkingCellTasks();
-                    }
-                });
+                break;
+            case "UNKNOWN":
+                network_details.setText(string.NONE);
+                break;
+            default:
+                break;
+        }
 
     }
-
 
     private RepetitiveTask createCellRepetitiveTask() {
-        return new RepetitiveTask(new Runnable() {
-            @Override
-            public void run() {
-                WorkingCellTasks();
-            }
-        }, REPETITIVE_TASK_DELAY_IN_MILLIS);
+        return new RepetitiveTask(this::WorkingCellTasks, REPETITIVE_TASK_DELAY_IN_MILLIS);
     }
 
-    //___________________________About Menu On Click________________________________________________
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        this.menu = menu;
-        getMenuInflater().inflate(R.menu.menu_button, menu);
-        return true;
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-                case R.id.action_switch_timer:
-                    toggleCellTask(menu);
-                    return true;
-                case R.id.search:
-                    if (!workingFlag) {
-                        Toast.makeText(this, "Presionar Stop", Toast.LENGTH_SHORT).show();
-                    } else {
-                        final CellParameteGetter cellMonitor = new CellParameteGetter(getApplication());
-                        final CellRegistered celdax = cellMonitor.action_monitor();
-                        final Integer cellid = celdax.getCid();
-                        final Handler handler = new Handler();
-
-
-                        final Thread thread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    final String texto = btsDatabase.daoAccess().fetchOneBtsbyId(cellid)
-                                            .getBtsName();
-
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-
-                                            btsNameFinded = texto;
-
-                                        }
-                                    });
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-
-                        });
-
-                        thread.start();
-
-
-                        AlertDialog.Builder dialog = new AlertDialog.Builder(this)
-                                .setTitle("Información detectada:")
-                                .setMessage("La torre se llama: " + btsNameFinded )
-                                .setPositiveButton("Cerrar", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        Log.d("MainActivity", "Sending atomic bombs to Jupiter");
-                                    }
-                                });
-
-                        if (btsNameFinded == null) {
-
-                            Toast.makeText(this, "buscando...", Toast.LENGTH_SHORT).show();
-                        } else {
-                            dialog.show();
-                        }
-
-                    }
-
-
-            return true;
-            default:
-            return false;
-        }
-    }
-
-
-
-
-
-    private void toggleCellTask(Menu menu) {
-        this.menu = menu;
-        if (cellRepetitiveTask.isRunning()) {
-            menu.getItem(0).setIcon(getDrawable(R.drawable.play_action));
-            stopLocationUpdates(); //// borrar
-
-            workingFlag = true;
-            cellRepetitiveTask.stop();
-        } else {
-            menu.getItem(0).setIcon(getDrawable(R.drawable.stop_action));
-            startLocationUpdates();//// borrar
-            workingFlag = false;
-
-            cellRepetitiveTask.start(true);
-        }
-    }
-
-    /*
-    Methods for locations
-     */
+    /*  Methods for locations*/
     @Override
     protected void onStart() {
         super.onStart();
@@ -387,15 +216,15 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
             double latitude = mLastLocation.getLatitude();
             double longitude = mLastLocation.getLongitude();
 
-            longitud.setText(""+longitude);
+            mLongitude.setText(""+longitude);
 
-            latitud.setText(""+latitude);
+            mLatitude.setText(""+latitude);
 
 
 
         } else {
-            latitud.setText("null");
-            longitud.setText("null");
+            mLatitude.setText("null");
+            mLongitude.setText("null");
 
         }
 
@@ -403,9 +232,16 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
     private void createLocationRequest() {
         mLocationRequest = new LocationRequest();
+        //___________________________Location Variabless______
+        // SEC
+        int UPDATE_INTERVAL = 5000;
         mLocationRequest.setInterval(UPDATE_INTERVAL);
+        //SEC
+        int FASTEST_INTERVAL = 3000;
         mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        // METERS
+        int DISPLACEMENT = 10;
         mLocationRequest.setSmallestDisplacement(DISPLACEMENT);
     }
 
@@ -418,21 +254,6 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
         mGoogleApiClient.connect();
     }
 
-    private boolean checkPlayServices(){
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                GooglePlayServicesUtil.getErrorDialog(resultCode, this, PLAY_SERVICES_RESOLUTION_REQUEST).show();
-            } else {
-                Toast.makeText(getApplicationContext(),"This device is not supported",Toast.LENGTH_SHORT).show();
-                finish();
-            }
-            return false;
-        }
-
-        return true;
-    }
-
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -441,11 +262,13 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
     }
 
 
+    /*  methods implemented for ConnectionCallbacks*/
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         displayLocation();
-        if(mRequestingLocationUpdates)
-            startLocationUpdates();
+
+         startLocationUpdates();
     }
 
     @Override
@@ -455,7 +278,6 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
     }
 
     @Override
@@ -465,4 +287,43 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
     }
 
 
+    /*  methods referenced*/
+
+    private void onClickSearch(View view) {
+
+        final CellParameteGetter cellMonitor = new CellParameteGetter(getApplication());
+        final CellRegistered celdax = cellMonitor.action_monitor();
+        final Integer cellid = celdax.getCid();
+        final Handler handler = new Handler();
+
+        cellRepetitiveTask.start(true);
+        startLocationUpdates();
+
+
+        new Thread(() -> {
+            try {
+                final String texto = btsDatabase.daoAccess().fetchOneBtsbyId(cellid)
+                        .getBtsName();
+
+                handler.post(() -> btsNameFetched = texto);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        mTextoResultado.setText(btsNameFetched);
+
+    }
+
+    private void onClickStop(View view) {
+
+        if (!cellRepetitiveTask.isRunning()) {
+            return;
+        }
+
+        cellRepetitiveTask.stop();
+        stopLocationUpdates();
+
+    }
 }

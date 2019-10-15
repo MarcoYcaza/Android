@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">Tdp Cell Finder</string>
-	<string-array name="ListaSites">
+	<string name="GSM">GSM</string>
+	<string name="WCDMA">WCDMA</string>
+	<string name="LTE">LTE</string>
+    <string name="NONE">null</string>
+    <string-array name="ListaSites">
         <item>741170;"AM00146 nombre: BELAUNDE_AMAZONAS"</item>
 		<item>441550;"AM00156 nombre: BAGUA"</item>
 		<item>741156;"AM00156 nombre: BAGUA"</item>

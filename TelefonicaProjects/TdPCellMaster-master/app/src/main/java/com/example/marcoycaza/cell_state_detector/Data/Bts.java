@@ -1,14 +1,16 @@
 package com.example.marcoycaza.cell_state_detector.Data;
 
+
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 @Entity
 public class Bts {
 
-    @NonNull
     @PrimaryKey
+    @NonNull
     private String BtsId;
     private String BtsName;
 

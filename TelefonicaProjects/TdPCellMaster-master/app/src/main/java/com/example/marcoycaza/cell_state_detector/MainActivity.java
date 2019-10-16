@@ -1,20 +1,21 @@
 package com.example.marcoycaza.cell_state_detector;
 
+
 import android.Manifest;
-import android.arch.persistence.room.Room;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.marcoycaza.cell_state_detector.Data.BtsDatabase;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.ViewModelProviders;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -24,24 +25,17 @@ import com.google.android.gms.location.LocationServices;
 
 import static com.example.marcoycaza.cell_state_detector.R.*;
 
-public class MainActivity extends AppCompatActivity  implements GoogleApiClient.ConnectionCallbacks,
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,LocationListener {
 
     private final static long REPETITIVE_TASK_DELAY_IN_MILLIS = 10;
-    private static final String SAVED_INSTANCE_STATE_KEY_IS_RUNNING = "isRunning";
-    private static final String SAVED_INSTANCE_STATE_KEY_LAST_TEXT = "lastDataText";
-    private static final String DATABASE_NAME = "bts_db";
-    private BtsDatabase btsDatabase;
-
 
 
     //______________Variables_________________
 
-    private boolean isPaused;
     private RepetitiveTask cellRepetitiveTask;
     private TextView network_details;
     private String btsNameFetched;
-
 
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
@@ -50,7 +44,7 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
     private TextView mLongitude;
     private TextView mTextoResultado;
 
-
+    private BTS_ViewModel bts_viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,77 +52,24 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
         setContentView(layout.activity_main);
 
         final Button mButtonSearch = findViewById(id.buttonSearch);
-        final Button mButtonStop = findViewById(id.buttonStop);
+
+        bts_viewModel = ViewModelProviders.of(this).get(BTS_ViewModel.class);
 
         mTextoResultado = findViewById(id.textRes);
 
+        network_details =    findViewById(id.detailsNetTx);
+        cellRepetitiveTask =    createCellRepetitiveTask();
 
-        isPaused = false;
-
-        btsDatabase = Room.databaseBuilder(getApplicationContext(),
-                BtsDatabase.class, DATABASE_NAME).fallbackToDestructiveMigration().build();
-
-
-
-        btsDatabase.PopulationExecution(getApplicationContext());
+        mLatitude  =  findViewById(id.latitud);
+        mLongitude = findViewById(id.longitud);
 
         buildGoogleApiClient();
         createLocationRequest();
 
-        network_details = findViewById(id.detailsNetTx);
-        cellRepetitiveTask = createCellRepetitiveTask();
-
-        mLatitude = findViewById(id.latitud);
-        mLongitude = findViewById(id.longitud);
-
-
-        /* Acá vamos a incluir los botones*/
-        mButtonStop.setOnClickListener(//// borrar
-                this::onClickStop);
-
-        mButtonSearch.setOnClickListener(// Lo que sucede cuando buscamos
+        mButtonSearch.setOnClickListener(
                 this::onClickSearch);
 
     }
-
-    /*  Methods override form Activity , can be replaced with ViewModel*/
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        final boolean isRunning = savedInstanceState.getBoolean(SAVED_INSTANCE_STATE_KEY_IS_RUNNING, false);
-        if (isRunning) {
-            cellRepetitiveTask.start(true);
-        } else {
-            final String lastTimeText = savedInstanceState.getString(SAVED_INSTANCE_STATE_KEY_LAST_TEXT, "");
-            network_details.setText(lastTimeText);
-        }
-    }
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(SAVED_INSTANCE_STATE_KEY_IS_RUNNING, isPaused || cellRepetitiveTask.isRunning());
-        outState.putString(SAVED_INSTANCE_STATE_KEY_LAST_TEXT, network_details.getText().toString());
-        super.onSaveInstanceState(outState);
-    }
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        if (isPaused) {
-            cellRepetitiveTask.start(true);
-            isPaused = false;
-        }
-    }
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (cellRepetitiveTask.isRunning()) {
-            cellRepetitiveTask.stop();
-            isPaused = true;
-        }
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
-        if(mGoogleApiClient != null)
-            mGoogleApiClient.disconnect();
-    }
-
 
     public void WorkingCellTasks() {
 
@@ -195,10 +136,6 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
             mGoogleApiClient.connect();
         }
 
-    }
-
-    private void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
     }
 
     private void displayLocation() {
@@ -285,42 +222,22 @@ public class MainActivity extends AppCompatActivity  implements GoogleApiClient.
 
 
     /*  methods referenced*/
-
     private void onClickSearch(View view) {
 
         final CellParameterGetter cellMonitor = new CellParameterGetter(getApplication());
         final CellRegistered celdax = cellMonitor.action_monitor();
         final Integer cellid = celdax.getCid();
         final Handler handler = new Handler();
+        final String string;
 
         cellRepetitiveTask.start(true);
         startLocationUpdates();
 
+        string = bts_viewModel.FindThing(cellid,handler);
 
-        new Thread(() -> {
-            try {
-                final String texto = btsDatabase.daoAccess().fetchOneBtsbyId(cellid)
-                        .getBtsName();
 
-                handler.post(() -> btsNameFetched = texto);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
-
-        mTextoResultado.setText(btsNameFetched);
+        mTextoResultado.setText(string);
 
     }
 
-    private void onClickStop(View view) {
-
-        if (!cellRepetitiveTask.isRunning()) {
-            return;
-        }
-
-        cellRepetitiveTask.stop();
-        stopLocationUpdates();
-
-    }
 }

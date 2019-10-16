@@ -1,5 +1,6 @@
 package com.example.marcoycaza.cell_state_detector;
 
+
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
@@ -11,18 +12,13 @@ import android.telephony.CellInfoLte;
 import android.telephony.CellInfoWcdma;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.Toast;
-
-import javax.security.auth.login.LoginException;
-
 
 public class CellParameterGetter {
 
     private TelephonyManager telephonyManager;
-    private Application application;
 
     public CellParameterGetter(Application application) {
-        this.application = application;
+
         this.telephonyManager = (TelephonyManager) application.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
     }
 
